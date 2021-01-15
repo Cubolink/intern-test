@@ -23,12 +23,18 @@ def vector_visualization():
     plt.savefig('temp.jpg')  # doesn't work because we haven't use plt
 
 
-def add_raster_date_to_rasterstats(raster_stats: [], date_str: str):
-    for i in range(len(raster_stats)):
-        raster_stats[i]['date'] = date_str
+def open_rasters(initial_date: date = None, final_date: date = None):
+    """
+    Gets the raster data from one date to other.
 
-
-def open_rasters(initial_date: date = date(1, 1, 1), final_date: date = date(5000, 12, 1)):
+    :param initial_date: the initial date to consider when getting the data. Default None means from the oldest times.
+    :param final_date: the final date to consider when getting the data. Default None means to the most recent times.
+    :return: a list with the inforomation over time. Each element is a list with all the potreros at the same date.
+    """
+    if initial_date is None:
+        initial_date = date(1, 1, 1)
+    if final_date is None:
+        final_date = date(5000, 12, 1)
     rasters_stats = []
 
     for name in os.listdir(RASTER_DIR):
@@ -37,26 +43,42 @@ def open_rasters(initial_date: date = date(1, 1, 1), final_date: date = date(500
             if initial_date <= raster_date <= final_date:  # dates are between the initial and final date we want
                 rasters_stats.append(open_raster(name))
 
-    print(rasters_stats)
     return rasters_stats
 
 
-def get_potrero_info(name):
+def get_potreros_info(names: [str] = None, initial_date: date = None, final_date: date = None):
     """
-    Gets the information of an specific potrero.
+    Gets the information of an specific potrero or list of potreros.
 
-    :param name: the name of the potrero
-    :return: a dictionary with that information.
+    :param names: the names of the selected potrero. Default None means all potreros.
+    :param initial_date: the initial date to consider. Default None means from the oldest times.
+    :param final_date: the final date to consider. Default None means to the most recent times.
+
+    :return: a list with the information through time. Each element is a list with the potreros information.
     """
 
     # look for the files
+    raster_stats = open_rasters(initial_date, final_date)
+    if names is not None:
+        # select info
+        for i_date in range(len(raster_stats)):
+            # option 1, coparing times resulted in this option being twice faster
+            raster_stats[i_date] = [
+                potrero for potrero in raster_stats[i_date]
+                if potrero['properties']['Name'] in names
+            ]
 
-    #
+            '''
+            # option 2
+            raster_stats[i_date] = list(filter(lambda potrero: potrero['properties']['Name'] in names,
+                                               raster_stats[i_date]))
+            '''
 
-    return 0
+    return raster_stats
 
 
 if __name__ == "__main__":
     # vector_visualization()
-    open_rasters()
+
+    print(get_potreros_info())
 
