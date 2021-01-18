@@ -1,6 +1,6 @@
 import rasterio
 from rasterstats import zonal_stats
-from PotrerosShape import get_potreros_shape
+from potrerosshape import get_potreros_shape
 from datetime import datetime
 
 RASTER_DIR = "../raster/"

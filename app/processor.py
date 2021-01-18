@@ -4,7 +4,8 @@ from datetime import date
 import geopandas as gpd
 from matplotlib import pyplot as plt
 
-from RasterData import open_raster, get_date_from_filename
+from rasterdata import open_raster, get_date_from_filename
+from statisticsmerger import *
 
 
 BASE_DIR = "../"
@@ -44,31 +45,7 @@ def open_rasters(initial_date: date = None, final_date: date = None):
             if initial_date <= raster_date <= final_date:  # dates are between the initial and final date we want
                 rasters_stats.append(open_raster(name))
 
-    # calculate stats over this period of time
-    potreros = {}
-
-    def combined_mean(x1, n1, x2, n2):
-        return (x1 * n1 + x2 * n2) / (n1 + n2)
-
-    for p in range(len(rasters_stats[0])):
-        for t in range(len(rasters_stats)):  # for each potrero, iterate over the time dictionaries
-            name = rasters_stats[t][p]['properties']['Name']
-            if name not in potreros.keys():
-                potreros[name] = {}
-                potreros[name]['count'] = 0
-                potreros[name]['mean'] = 0
-
-            if rasters_stats[t][p]['properties']['mean'] is not None:
-                potreros[name]['mean'] = combined_mean(potreros[name]['mean'], potreros[name]['count'],
-                                                       rasters_stats[t][p]['properties']['mean'],
-                                                       rasters_stats[t][p]['properties']['count'])
-                potreros[name]['count'] += rasters_stats[t][p]['properties']['count']
-            else:
-                print(f"'None' mean value in {t}, {p}")
-
-    # then return
-
-    return potreros
+    return rasters_stats
 
 
 def get_potreros_info(names: [str] = None, initial_date: date = None, final_date: date = None):
@@ -99,7 +76,28 @@ def get_potreros_info(names: [str] = None, initial_date: date = None, final_date
                                                raster_stats[i_date]))
             '''
 
-    return raster_stats
+    # calculate stats over this period of time
+    potreros = {}
+
+    for p in range(len(raster_stats[0])):
+        for t in range(len(raster_stats)):  # for each potrero, iterate over the time dictionaries
+            name = raster_stats[t][p]['properties']['Name']
+            if name not in potreros.keys():
+                potreros[name] = {}
+                potreros[name]['count'] = 0
+                potreros[name]['mean'] = 0
+
+            if raster_stats[t][p]['properties']['mean'] is not None:
+                potreros[name]['mean'] = combined_mean(potreros[name]['mean'], potreros[name]['count'],
+                                                       raster_stats[t][p]['properties']['mean'],
+                                                       raster_stats[t][p]['properties']['count'])
+                potreros[name]['count'] += raster_stats[t][p]['properties']['count']
+            else:
+                print(f"'None' mean value in {t}, {p}")
+
+    # then return
+
+    return potreros
 
 
 if __name__ == "__main__":
